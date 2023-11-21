@@ -11,6 +11,6 @@ export const menus = [
   { name: "Pilotos", href: "/pilots", icon: GiShipWheel },
   { name: "Histórico", href: "/files", icon: FiFolder },
   { name: "Relatórios", href: "/relatorios", icon: AiOutlineBarChart },
-  { name: "Classificação", href: "/classificacao", icon: IoPodiumOutline }
+  { name: "Classificação", href: "/classification", icon: IoPodiumOutline }
 
 ];
