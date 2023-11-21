@@ -95,8 +95,8 @@ const LeaderboardTable = () => {
                     </tbody>
                 </table>
             </div>    
-        </div>   
-        <div className="bg-slate flex flex-col max-w-full shadow-xl p-4">
+          </div>   
+          <div className="bg-slate flex flex-col max-w-full shadow-xl p-4">
        
         <div className="overflow-y-auto max-h-60 flex justify-center">
         <table>
