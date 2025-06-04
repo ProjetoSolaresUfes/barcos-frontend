@@ -4,6 +4,7 @@ const LineChart = dynamic(() => import("@carbon/charts-react").then((mod) => mod
 import { ScaleTypes } from "@carbon/charts/interfaces"; // Adicionado
 import "@carbon/styles/css/styles.css";
 import "@carbon/charts/styles.css";
+import { title } from "process";
 
 interface LineChartComponentProps {
   data: {
@@ -11,12 +12,14 @@ interface LineChartComponentProps {
     key: string;
     value: number;
   }[];
+  titleChart: string;
 }
 
-export function Chart({ data = [] }: LineChartComponentProps) {
+export function Chart({ data = [], titleChart }: LineChartComponentProps) {
 
   const options = {
-    title: "Dados do Barco",
+    //title: "Dados do Barco",
+    title: titleChart,
     axes: {
       bottom: {
         title: "Medições",

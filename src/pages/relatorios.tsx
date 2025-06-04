@@ -22,7 +22,9 @@ export default function Relatorios() {
   const [correnteMotor, setCorrenteMotor] = useState<ChartData>([]);
   const [potenciaMotor, setPotenciaMotor] = useState<ChartData>([]);
   const [velocidade, setVelocidade] = useState<ChartData>([]);
-  const [correnteStrings, setCorrenteStrings] = useState<ChartData>([]);
+  const [correnteString1, setCorrenteString1] = useState<ChartData>([]);
+  const [correnteString2, setCorrenteString2] = useState<ChartData>([]);
+  const [correnteStringSoma, setCorrenteStringsoma] = useState<ChartData>([]);
 
 
   const router = useRouter();
@@ -111,20 +113,44 @@ export default function Relatorios() {
       setFileContent(text);
 
 
-      const parseTensaoBateria = parseFileToChartData(text, 4, "Tensão na Bateria");
+      //tensaoSaidaMPPT
+      const parseTensaoBateria = parseFileToChartData(text, 7, "Tensão na Bateria");
       setTensaoBateria(parseTensaoBateria);
 
+      //CorrenteMotor
       const parseCorrenteMotor = parseFileToChartData(text, 0, "Corrente no Motor");
       setCorrenteMotor(parseCorrenteMotor);
 
-      const parsePotenciaMotor = parseFileToChartData(text, 2, "Potencia do Motor");
+      // PotenciaMotor = TensaoSaidaMPPT * CorrenteMotor
+      const parsePotenciaMotor = parseTensaoBateria.map((item, i) => ({
+        group: 'Potencia do motor',
+        key: item.key,
+        value: item.value * parseCorrenteMotor[i].value,
+      }));
+      //const reduzido: ChartData = parsePotenciaMotor.filter((_, index) => index % 3 === 0);
       setPotenciaMotor(parsePotenciaMotor);
 
+      //Velocidade
       const parseVelocidade = parseFileToChartData(text, 3, "Velocidade");
       setVelocidade(parseVelocidade);
 
-      const parseCorrenteStrings = parseFileToChartData(text, 3, "Correte na String");
-      setCorrenteStrings(parseCorrenteStrings);
+      //Corrente String 1
+      const parseCorrenteString1 = parseFileToChartData(text, 5, "Correte na String");
+      setCorrenteString1(parseCorrenteString1);
+
+      //Corrente String 2
+      const parseCorrenteString2 = parseFileToChartData(text, 6, "Correte na String");
+      setCorrenteString2(parseCorrenteString2);
+
+      // Soma das Correntes das Strings
+      const parseCorrenteStringSoma = parseCorrenteString1.map((item, i) => ({
+        group: 'Soma das Correntes das Strings',
+        key: item.key,
+        value: item.value * parseCorrenteString2[i].value,
+      }));
+      setCorrenteStringsoma(parseCorrenteStringSoma);
+
+
 
 
     } catch (err) {
@@ -204,22 +230,40 @@ export default function Relatorios() {
       
 
 
-      <div className="flex flex-col gap-y-8 max-w-[1200px] mx-auto min-w-1200">
+      <div className="flex flex-col gap-y-8 w-[1300px] mx-auto">
+
+      {tensaoBateria ? (
+        <Chart data={tensaoBateria} titleChart="Corrente do Motor"/>
+      ) : (
+        <p>Carregando dados...</p>
+      )}
 
       {correnteMotor ? (
-        <Chart data={correnteMotor}/>
+        <Chart data={correnteMotor} titleChart="Corrente do Motor"/>
       ) : (
         <p>Carregando dados...</p>
       )}
 
       {potenciaMotor ? (
-        <Chart data={potenciaMotor}/>
+        <Chart data={potenciaMotor} titleChart="potencia do Motor"/>
       ) : (
         <p>Carregando dados...</p>
       )}
 
-      {correnteStrings ? (
-        <Chart data={correnteStrings}/>
+      {correnteString1 ? (
+        <Chart data={correnteString1} titleChart="Corrente String 1"/>
+      ) : (
+        <p>Carregando dados...</p>
+      )}
+
+      {correnteString2 ? (
+        <Chart data={correnteString2} titleChart="Corrente String 2"/>
+      ) : (
+        <p>Carregando dados...</p>
+      )}
+
+      {correnteStringSoma ? (
+        <Chart data={correnteStringSoma} titleChart="Soma das Correntes das Strings"/>
       ) : (
         <p>Carregando dados...</p>
       )}

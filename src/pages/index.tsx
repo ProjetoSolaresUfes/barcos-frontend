@@ -91,10 +91,10 @@ export default function Home() {
           />
         </div>
         <div className='w-full md:h-full mt-4 md:mt-0'>
-          <Chart data={dataForChart} />
+          <Chart data={dataForChart} titleChart="Dados do Barco"/>
         </div>
       </div>
-      <Chat dadosBarco={dataForChat} />
+      <Chat dadosBarco={dataForChat}/>
     </div>
   )
 }
