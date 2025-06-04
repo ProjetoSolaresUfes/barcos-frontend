@@ -191,49 +191,67 @@ export default function Relatorios() {
 
 
       <div>
-        <p>Nada: </p>
-        {correnteMotor?.length > 0
-            ? correnteMotor[0].value - correnteMotor[correnteMotor.length - 1].value
-            : "Sem dados"
-        } <br />
         
-        <p>Hora Inicial: </p>
-        {correnteMotor?.length > 0
+        <p>Hora Inicial: {correnteMotor?.length > 0
             ? correnteMotor[0].key
             : "Sem dados"
-        } <br />
+        }
+        </p>
 
-        <p>Hora Final: </p> 
-        {correnteMotor?.length > 0
+        <p>Hora Final   : {correnteMotor?.length > 0
             ? correnteMotor[correnteMotor.length - 1].key
             : "Sem dados"
-        } <br />
+        }
+        </p>
 
-        <p>Média Corrente: </p> 
-        {correnteMotor?.length > 0
+        <p>Corrente do Motor (Med): {correnteMotor?.length > 0
             ? correnteMotor.reduce((sum, d) => sum + d.value, 0) / correnteMotor.length
             : "Sem dados"
-        } <br />
+        }
+        </p>
+        
+        <p>Corrente do Motor (Max): {correnteMotor?.length > 0 
+            ? Math.max(...correnteMotor.map(d => d.value)) 
+            : "Sem dados"}
+        </p>
 
-        <p>Máxima Corrente: {correnteMotor?.length > 0 ? Math.max(...correnteMotor.map(d => d.value)) : "Sem dados"}</p>
+        <p>Potência do Motor (Med): {potenciaMotor?.length > 0
+            ? potenciaMotor.reduce((sum, d) => sum + d.value, 0) / potenciaMotor.length
+            : "Sem dados"
+        }
+        </p>
+        
+        <p>Potência do Motor (Max): {potenciaMotor?.length > 0 
+            ? Math.max(...potenciaMotor.map(d => d.value)) 
+            : "Sem dados"}
+        </p>
+
+        <p>Tensão das Baterias (Med): {tensaoBateria?.length > 0
+            ? tensaoBateria.reduce((sum, d) => sum + d.value, 0) / tensaoBateria.length
+            : "Sem dados"
+        }
+        </p>
+        
+        <p>Tensão das Baterias (Max): {tensaoBateria?.length > 0 
+            ? Math.max(...tensaoBateria.map(d => d.value)) 
+            : "Sem dados"}
+        </p>
+
+        
+
 
 
 
       </div>
 
-<div className="mt-4 px-4">
-        <h2 className="font-bold">Conteúdo do arquivo:</h2>
-        <pre className="bg-gray-100 text-black p-4 rounded h-64 overflow-auto whitespace-pre-wrap">
-          {fileContent || "Nenhum arquivo selecionado."}
-        </pre>
-      </div>
+
       
 
 
       <div className="flex flex-col gap-y-8 w-[1300px] mx-auto">
 
       {tensaoBateria ? (
-        <Chart data={tensaoBateria} titleChart="Corrente do Motor"/>
+        <Chart data={tensaoBateria} titleChart="Tensão das Baterias"/>
       ) : (
         <p>Carregando dados...</p>
       )}
@@ -276,6 +294,13 @@ export default function Relatorios() {
 }
 /*
 <div className="mt-4 px-4">
+        <h2 className="font-bold">Conteúdo do arquivo:</h2>
+        <pre className="bg-gray-100 text-black p-4 rounded h-64 overflow-auto whitespace-pre-wrap">
+          {fileContent || "Nenhum arquivo selecionado."}
+        </pre>
+      </div>
+
+      <div className="mt-4 px-4">
         <h2 className="font-bold">Conteúdo do arquivo:</h2>
         <pre className="bg-gray-100 text-black p-4 rounded h-64 overflow-auto whitespace-pre-wrap">
           {fileContent || "Nenhum arquivo selecionado."}
