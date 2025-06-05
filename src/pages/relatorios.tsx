@@ -190,7 +190,10 @@ export default function Relatorios() {
       
 
 
-      <div>
+
+      <div className="bg-white text-black grid grid-cols-4 gap-4 p-4 flex flex-col w-[1300px] mx-auto my-5 rounded-lg">
+        
+
         
         <p>Hora Inicial: {correnteMotor?.length > 0
             ? correnteMotor[0].key
@@ -198,44 +201,52 @@ export default function Relatorios() {
         }
         </p>
 
+        
+
+        <p>Corrente do Motor (Med): {correnteMotor?.length > 0
+            ? (correnteMotor.reduce((sum, d) => sum + d.value, 0) / correnteMotor.length).toFixed(3)
+            : "Sem dados"
+        }
+        </p>
+
+        <p>Tensão das Baterias (Med): {tensaoBateria?.length > 0
+            ? (tensaoBateria.reduce((sum, d) => sum + d.value, 0) / tensaoBateria.length).toFixed(3)
+            : "Sem dados"
+        }
+        </p>
+        
+        
+
+        <p>Potência do Motor (Med): {potenciaMotor?.length > 0
+            ? (potenciaMotor.reduce((sum, d) => sum + d.value, 0) / potenciaMotor.length).toFixed(3)
+            : "Sem dados"
+        }
+        </p>
+        
         <p>Hora Final   : {correnteMotor?.length > 0
             ? correnteMotor[correnteMotor.length - 1].key
             : "Sem dados"
         }
         </p>
 
-        <p>Corrente do Motor (Med): {correnteMotor?.length > 0
-            ? correnteMotor.reduce((sum, d) => sum + d.value, 0) / correnteMotor.length
-            : "Sem dados"
-        }
-        </p>
-        
         <p>Corrente do Motor (Max): {correnteMotor?.length > 0 
-            ? Math.max(...correnteMotor.map(d => d.value)) 
+            ? (Math.max(...correnteMotor.map(d => d.value))).toFixed(3)
             : "Sem dados"}
         </p>
 
-        <p>Potência do Motor (Med): {potenciaMotor?.length > 0
-            ? potenciaMotor.reduce((sum, d) => sum + d.value, 0) / potenciaMotor.length
-            : "Sem dados"
-        }
-        </p>
-        
-        <p>Potência do Motor (Max): {potenciaMotor?.length > 0 
-            ? Math.max(...potenciaMotor.map(d => d.value)) 
-            : "Sem dados"}
-        </p>
-
-        <p>Tensão das Baterias (Med): {tensaoBateria?.length > 0
-            ? tensaoBateria.reduce((sum, d) => sum + d.value, 0) / tensaoBateria.length
-            : "Sem dados"
-        }
-        </p>
-        
         <p>Tensão das Baterias (Max): {tensaoBateria?.length > 0 
-            ? Math.max(...tensaoBateria.map(d => d.value)) 
+            ? (Math.max(...tensaoBateria.map(d => d.value))).toFixed(3)
             : "Sem dados"}
         </p>
+
+        <p>Potência do Motor (Max): {potenciaMotor?.length > 0 
+            ? (Math.max(...potenciaMotor.map(d => d.value))).toFixed(3)
+            : "Sem dados"}
+        </p>
+
+        
+        
+        
 
         
 
