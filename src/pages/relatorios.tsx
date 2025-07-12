@@ -3,21 +3,18 @@ import { orderBy } from "lodash";
 import dynamic from "next/dynamic";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Chart } from "@/components/Chart";
-import LineChart from '../components/LineChart';
+import { ChartData, DadosBarco } from "@/types/ChartData";
+import { transformDataChart } from "@/utils/chart";
 import { useEffect, useState } from "react";
 
 
 export default function Relatorios() {
+  //User States
   const [files, setFiles] = useState<any>([]);
   const searchParams = useSearchParams();
 	const [selectedOption, setSelectedOption] = useState<string>("");
   const [fileContent, setFileContent] = useState<string>("");
   const [chartData, setChartData] = useState<ChartData>([]);
-
-  //const [selectedOption, setSelectedOption] = useState<string>("");
-
-
-
   const [tensaoBateria, setTensaoBateria] = useState<ChartData>([]);
   const [correnteMotor, setCorrenteMotor] = useState<ChartData>([]);
   const [potenciaMotor, setPotenciaMotor] = useState<ChartData>([]);
@@ -31,31 +28,29 @@ export default function Relatorios() {
 	const file = searchParams.get("file") as string;
 
 
-
-
-
-
-
   type ChartData = {
   group: string;
   key: string;
   value: number;
   }[];
 
+  //Função para pegar os dados do arquivo e converter para o chartdata
   function parseFileToChartData(fileContent: string, multiplier: number, description: string): ChartData  {
   const lines = fileContent.trim().split("\n");
 
   const data: ChartData = lines
     .map((line) => {
-      const cols = line.trim().split(",");
+      
+      const cols = line.trim().split(",");        //Separando as colunas
+      if (cols.length < 12) return null;          //Verificando numero de Colunas
 
-      if (cols.length < 12) return null;
+      //1,229.48,164.04,-1.00,-1.00,0.00,9.46,9.60,49.45,80.52,18.80,0,24/07/2024 13:35:22,Pizzol
 
-      const horaCompleta = cols[cols.length - 2]; // ex: "02/08/2023 13:29:03"
-      const hora = horaCompleta.split(" ")[1];    // extrai só a hora: "13:29:03"
+      //Separa a Hora, valores de hora serão eixo x do gráfico
+      const horaCompleta = cols[cols.length - 2];    // pega a coluna   : "02/08/2023 13:29:03"
+      const hora = horaCompleta.split(" ")[1];       // extrai só a hora: "13:29:03"
 
-      const corrente = parseFloat(cols[multiplier]);       // coluna 2: corrente
-
+      const corrente = parseFloat(cols[multiplier]); // pega o valor da coluna que foi passado
       if (!hora || isNaN(corrente)) return null;
 
       return {
@@ -68,7 +63,6 @@ export default function Relatorios() {
 
   return data;
 }
-
 
 	useEffect(() => { 
 		setSelectedOption(file);
@@ -108,17 +102,24 @@ export default function Relatorios() {
         return;
       }
 
+      //Obtendo Arquivo escolhido
       const response = await fetch(url);
       const text = await response.text();
       setFileContent(text);
 
+      // Verificando quantidade de Medições
+      const numMedicoes = text.split('\n').length;
+      
+      //Reduzindo a quantidade de pontos no gráfico
+      let fatorDeReducao = 1;
+      if(numMedicoes >= 600) fatorDeReducao = 3;  //Registra a cada 3 segundos
 
       //tensaoSaidaMPPT
-      const parseTensaoBateria = parseFileToChartData(text, 7, "Tensão na Bateria");
+      const parseTensaoBateria = parseFileToChartData(text, 7, "Tensão na Bateria").filter((_, index) => index % fatorDeReducao === 0);
       setTensaoBateria(parseTensaoBateria);
-
+      
       //CorrenteMotor
-      const parseCorrenteMotor = parseFileToChartData(text, 0, "Corrente no Motor");
+      const parseCorrenteMotor = parseFileToChartData(text, 0, "Corrente no Motor").filter((_, index) => index % fatorDeReducao === 0);
       setCorrenteMotor(parseCorrenteMotor);
 
       // PotenciaMotor = TensaoSaidaMPPT * CorrenteMotor
@@ -127,19 +128,18 @@ export default function Relatorios() {
         key: item.key,
         value: item.value * parseCorrenteMotor[i].value,
       }));
-      //const reduzido: ChartData = parsePotenciaMotor.filter((_, index) => index % 3 === 0);
       setPotenciaMotor(parsePotenciaMotor);
 
       //Velocidade
-      const parseVelocidade = parseFileToChartData(text, 3, "Velocidade");
-      setVelocidade(parseVelocidade);
+      //const parseVelocidade = parseFileToChartData(text, 3, "Velocidade");
+      //setVelocidade(parseVelocidade);
 
       //Corrente String 1
-      const parseCorrenteString1 = parseFileToChartData(text, 5, "Correte na String");
+      const parseCorrenteString1 = parseFileToChartData(text, 5, "Correte na String").filter((_, index) => index % fatorDeReducao === 0);
       setCorrenteString1(parseCorrenteString1);
 
       //Corrente String 2
-      const parseCorrenteString2 = parseFileToChartData(text, 6, "Correte na String");
+      const parseCorrenteString2 = parseFileToChartData(text, 6, "Correte na String").filter((_, index) => index % fatorDeReducao === 0);
       setCorrenteString2(parseCorrenteString2);
 
       // Soma das Correntes das Strings
@@ -149,8 +149,6 @@ export default function Relatorios() {
         value: item.value * parseCorrenteString2[i].value,
       }));
       setCorrenteStringsoma(parseCorrenteStringSoma);
-
-
 
 
     } catch (err) {
@@ -170,6 +168,7 @@ export default function Relatorios() {
     router.push("", undefined);
   };
 
+
 	return (
     <div className="flex flex-col h-screen w-full  py-8">
       <div className="flex justify-center">
@@ -187,138 +186,89 @@ export default function Relatorios() {
         </select>
       </div>
       
-      
-
-
 
       <div className="bg-white text-black grid grid-cols-4 gap-4 p-4 flex flex-col w-[1300px] mx-auto my-5 rounded-lg">
-        
 
-        
+
         <p>Hora Inicial: {correnteMotor?.length > 0
             ? correnteMotor[0].key
             : "Sem dados"
         }
         </p>
-
-        
-
         <p>Corrente do Motor (Med): {correnteMotor?.length > 0
             ? (correnteMotor.reduce((sum, d) => sum + d.value, 0) / correnteMotor.length).toFixed(3)
             : "Sem dados"
         }
         </p>
-
         <p>Tensão das Baterias (Med): {tensaoBateria?.length > 0
             ? (tensaoBateria.reduce((sum, d) => sum + d.value, 0) / tensaoBateria.length).toFixed(3)
             : "Sem dados"
         }
         </p>
-        
-        
-
         <p>Potência do Motor (Med): {potenciaMotor?.length > 0
             ? (potenciaMotor.reduce((sum, d) => sum + d.value, 0) / potenciaMotor.length).toFixed(3)
             : "Sem dados"
         }
-        </p>
-        
+        </p> 
         <p>Hora Final   : {correnteMotor?.length > 0
             ? correnteMotor[correnteMotor.length - 1].key
             : "Sem dados"
         }
         </p>
-
         <p>Corrente do Motor (Max): {correnteMotor?.length > 0 
             ? (Math.max(...correnteMotor.map(d => d.value))).toFixed(3)
             : "Sem dados"}
         </p>
-
         <p>Tensão das Baterias (Max): {tensaoBateria?.length > 0 
             ? (Math.max(...tensaoBateria.map(d => d.value))).toFixed(3)
             : "Sem dados"}
         </p>
-
         <p>Potência do Motor (Max): {potenciaMotor?.length > 0 
             ? (Math.max(...potenciaMotor.map(d => d.value))).toFixed(3)
             : "Sem dados"}
         </p>
-
-        
-        
-        
-
-        
-
-
-
-
       </div>
-
-
-      
 
 
       <div className="flex flex-col gap-y-8 w-[1300px] mx-auto">
 
-      {tensaoBateria ? (
-        <Chart data={tensaoBateria} titleChart="Tensão das Baterias"/>
-      ) : (
-        <p>Carregando dados...</p>
-      )}
+        {tensaoBateria ? (
+          <Chart data={tensaoBateria} titleChart="Tensão das Baterias"/>
+        ) : (
+          <p>Carregando dados...</p>
+        )}
 
-      {correnteMotor ? (
-        <Chart data={correnteMotor} titleChart="Corrente do Motor"/>
-      ) : (
-        <p>Carregando dados...</p>
-      )}
+        {correnteMotor ? (
+          <Chart data={correnteMotor} titleChart="Corrente do Motor"/>
+        ) : (
+          <p>Carregando dados...</p>
+        )}
 
-      {potenciaMotor ? (
-        <Chart data={potenciaMotor} titleChart="potencia do Motor"/>
-      ) : (
-        <p>Carregando dados...</p>
-      )}
+        {potenciaMotor ? (
+          <Chart data={potenciaMotor} titleChart="potencia do Motor"/>
+        ) : (
+          <p>Carregando dados...</p>
+        )}
 
-      {correnteString1 ? (
-        <Chart data={correnteString1} titleChart="Corrente String 1"/>
-      ) : (
-        <p>Carregando dados...</p>
-      )}
+        {correnteString1 ? (
+          <Chart data={correnteString1} titleChart="Corrente String 1"/>
+        ) : (
+          <p>Carregando dados...</p>
+        )}
 
-      {correnteString2 ? (
-        <Chart data={correnteString2} titleChart="Corrente String 2"/>
-      ) : (
-        <p>Carregando dados...</p>
-      )}
+        {correnteString2 ? (
+          <Chart data={correnteString2} titleChart="Corrente String 2"/>
+        ) : (
+          <p>Carregando dados...</p>
+        )}
 
-      {correnteStringSoma ? (
-        <Chart data={correnteStringSoma} titleChart="Soma das Correntes das Strings"/>
-      ) : (
-        <p>Carregando dados...</p>
-      )}
+        {correnteStringSoma ? (
+          <Chart data={correnteStringSoma} titleChart="Soma das Correntes das Strings"/>
+        ) : (
+          <p>Carregando dados...</p>
+        )}
 
-      
       </div>
-
     </div>
   );
 }
-/*
-<div className="mt-4 px-4">
-        <h2 className="font-bold">Conteúdo do arquivo:</h2>
-        <pre className="bg-gray-100 text-black p-4 rounded h-64 overflow-auto whitespace-pre-wrap">
-          {fileContent || "Nenhum arquivo selecionado."}
-        </pre>
-      </div>
-
-      <div className="mt-4 px-4">
-        <h2 className="font-bold">Conteúdo do arquivo:</h2>
-        <pre className="bg-gray-100 text-black p-4 rounded h-64 overflow-auto whitespace-pre-wrap">
-          {fileContent || "Nenhum arquivo selecionado."}
-        </pre>
-      </div>
-
-<Chart data={correnteMotor} />
-      <Chart data={potenciaMotor} />
-      <Chart data={correnteStrings} />
-      */ 
